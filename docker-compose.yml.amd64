@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+  hls:
+    build:
+      context: .
+      dockerfile: Dockerfile.amd64
+    dns: <DNS_SERVER>
+    build:
+      context: .
+      dockerfile: Dockerfile.arm32v7
+    restart: always
+    environment:
+      SAVE_MAX_TIME: 5184000 # 3 months
+      HLS_FRAGMENT: 3 # seconds
+      RTSP_STREAM_stream1: "rtsp://127.0.0.1/stream1"
+      RTSP_STREAM_stream2: "rtsp://127.0.0.1/stream2"
+    tmpfs:
+      - /data/tmp/
+
+    volumes:
+      - /mnt/storage/videos:/data/storage/
+ 
