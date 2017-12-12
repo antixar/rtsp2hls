@@ -24,12 +24,13 @@ for t in ${TEMP}; do
     SCREEN_FOLDER=${TMP_FOLDER}/screen/${NAME}
     mkdir -p ${SCREEN_FOLDER}
 
+
     echo "${NAME} => ${URL}"
     temp=${EXEC_TEMPLATE/NAME/${NAME}}
     echo "${temp/URL/${URL}}" >> ${NGINX_CONFIG}
 
     temp=${EXEC_SCREEN_TEMPLATE/NAME/${NAME}}
-    echo "${temp/SCREEN_FOLDER/${SCREEN_FOLDER}}" >> ${NGINX_CONFIG}
+    # echo "${temp/SCREEN_FOLDER/${SCREEN_FOLDER}}" >> ${NGINX_CONFIG}
     NAMES="${NAMES} ${NAME}"
 done
 
