@@ -31,7 +31,7 @@ HLS_DIRS = sys.argv[1:]
 logger.info("start to check chunks for %s" % HLS_DIRS)
 
 STORAGE_DIR = os.environ.get("SAVE_STORAGE", "/tmp")
-TMP_FOLDER = os.environ.get("TMP_FOLDER", "/tmp")
+TMP_FOLDER = os.path.join(os.environ.get("TMP_FOLDER", "/tmp") , "hls")
 HLS_FRAGMENT_TIME = int(os.environ.get("HLS_FRAGMENT", "60"))
 SAVE_MAX_TIME = int(os.environ.get("SAVE_MAX_TIME", "600"))
 chunk_dir = "chunks"
@@ -166,6 +166,10 @@ def clean_dir(name):
             logger.info("root folder %s was removed" % d)
 
             rmtree(d)
+    return
+
+def check_screen(name):
+    logger.info("test: %s" % name)
     return
 
 def _check_func():
