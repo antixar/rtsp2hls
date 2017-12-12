@@ -10,7 +10,7 @@ if [ "${TEMP}" == "" ]; then
    exit 1
 fi
 
-EXEC_TEMPLATE='exec_static ffmpeg -loglevel warning -rtsp_transport tcp -i "URL" -vcodec copy -acodec copy -f flv rtmp://localhost:1935/hls/NAME  -vcodec copy -acodec copy -vf "select=gt(scene\,0.05)" -r 1/3 SCREEN_FOLDER/%08d.png;'
+EXEC_TEMPLATE='exec_static ffmpeg -loglevel warning -rtsp_transport tcp -i "URL" -vcodec copy -acodec copy -f flv rtmp://localhost:1935/hls/NAME  -vf "select=gt(scene\,0.05)" -r 1/3 SCREEN_FOLDER/%08d.png;'
            
 NAMES=
 for t in ${TEMP}; do
