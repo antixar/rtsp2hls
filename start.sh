@@ -34,8 +34,8 @@ SAVE_STORAGE_NAME=`basename  ${SAVE_STORAGE}`
 sed -i "s#SAVE_STORAGE_ROOT#${SAVE_STORAGE_ROOT}#g" ${NGINX_CONFIG}
 sed -i "s#SAVE_STORAGE_NAME#${SAVE_STORAGE_NAME}#g" ${NGINX_CONFIG}
 
-/usr/bin/python3.4 /saver.py ${NAMES} &
+python /saver.py ${NAMES} &
 
-
+/usr/sbin/nginx -c /config/nginx.conf
 # while [ 1 == 1 ]; do sleep 1; done
-nginx
+# nginx

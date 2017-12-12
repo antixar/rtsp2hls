@@ -6,9 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile.arm32v7
     dns: <DNS_SERVER>
-    build:
-      context: .
-      dockerfile: Dockerfile.arm32v7
     restart: always
     environment:
       SAVE_MAX_TIME: 5184000 # 3 months
