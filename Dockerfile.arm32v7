@@ -131,7 +131,7 @@ RUN apk add --no-cache ffmpeg python
 ENV SAVE_MAX_TIME  300
 ENV HLS_FRAGMENT 3
 ENV SAVE_STORAGE /data/storage/
-ENV HLS_TMP_FOLDER /data/tmp/hls/
+ENV TMP_FOLDER /data/tmp/
 ENV LOG_FILENAME /data/logs/saver.log
 
 

@@ -10,7 +10,7 @@ if [ "${TEMP}" == "" ]; then
    exit 1
 fi
 
-EXEC_TEMPLATE='exec_static ffmpeg -loglevel warning -rtsp_transport tcp -i "URL" -vcodec copy -acodec copy -f flv rtmp://localhost:1935/hls/NAME;'
+EXEC_TEMPLATE='exec_static ffmpeg -loglevel warning -rtsp_transport tcp -i "URL" -vcodec copy -acodec copy -f flv rtmp://localhost:1935/hls/NAME  -f image2 -vf "select=gt(scene\,0.05)" -r 1/3 -vsync vfr SCREEN_FOLDER/%08d.png;'
            
 NAMES=
 for t in ${TEMP}; do
@@ -19,14 +19,20 @@ for t in ${TEMP}; do
     if [ "${NAME}" == "" -o "${URL}" == "" ]; then
         continue
     fi
+    SCREEN_FOLDER=${TMP_FOLDER}/screen/${NAME}
+    mkdir -p ${SCREEN_FOLDER}
+
     echo "${NAME} => ${URL}"
     temp=${EXEC_TEMPLATE/NAME/${NAME}}
-    echo "${temp/URL/${URL}}" >> ${NGINX_CONFIG}
+    temp=${temp/NAME/${NAME}}
+    temp=${temp/URL/${URL}}
+    
+    echo "${temp/SCREEN_FOLDER/${SCREEN_FOLDER}}" >> ${NGINX_CONFIG}
     NAMES="${NAMES} ${NAME}"
 done
 
 echo "}}}" >> ${NGINX_CONFIG}
-sed -i "s#HLS_TMP_FOLDER#${HLS_TMP_FOLDER}#g" ${NGINX_CONFIG}
+sed -i "s#HLS_TMP_FOLDER#${TMP_FOLDER}#g" ${NGINX_CONFIG}
 sed -i "s#HLS_FRAGMENT#${HLS_FRAGMENT}#g" ${NGINX_CONFIG}
 
 SAVE_STORAGE_ROOT=`dirname ${SAVE_STORAGE}`
