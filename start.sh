@@ -10,7 +10,9 @@ if [ "${TEMP}" == "" ]; then
    exit 1
 fi
 
-EXEC_TEMPLATE='exec_static ffmpeg -loglevel warning -rtsp_transport tcp -i "URL" -vcodec copy -acodec copy -f flv rtmp://localhost:1935/hls/NAME  -vf "select=gt(scene\,0.05)" -r 1/3 SCREEN_FOLDER/%08d.png;'
+EXEC_TEMPLATE='exec_static ffmpeg -loglevel warning -rtsp_transport tcp -i "URL" -vcodec copy -acodec copy -f flv rtmp://localhost:1935/hls/NAME;'
+EXEC_SCREEN_TEMPLATE='exec_static ffmpeg -i http://localhost/hls/NAME/index.m3u8 -vf "select=gt(scene\,0.05)" -r 1/3 SCREEN_FOLDER/%08d.png;'
+
            
 NAMES=
 for t in ${TEMP}; do
@@ -24,9 +26,9 @@ for t in ${TEMP}; do
 
     echo "${NAME} => ${URL}"
     temp=${EXEC_TEMPLATE/NAME/${NAME}}
-    temp=${temp/NAME/${NAME}}
-    temp=${temp/URL/${URL}}
-    
+    echo "${temp/URL/${URL}}" >> ${NGINX_CONFIG}
+
+    temp=${EXEC_SCREEN_TEMPLATE/NAME/${NAME}}
     echo "${temp/SCREEN_FOLDER/${SCREEN_FOLDER}}" >> ${NGINX_CONFIG}
     NAMES="${NAMES} ${NAME}"
 done
