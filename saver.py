@@ -31,7 +31,7 @@ HLS_DIRS = sys.argv[1:]
 logger.info("start to check chunks for %s" % HLS_DIRS)
 
 STORAGE_DIR = os.environ.get("SAVE_STORAGE", "/tmp")
-HLS_TMP_FOLDER = os.environ.get("HLS_TMP_FOLDER", "/tmp")
+TMP_FOLDER = os.environ.get("TMP_FOLDER", "/tmp")
 HLS_FRAGMENT_TIME = int(os.environ.get("HLS_FRAGMENT", "60"))
 SAVE_MAX_TIME = int(os.environ.get("SAVE_MAX_TIME", "600"))
 chunk_dir = "chunks"
@@ -75,7 +75,7 @@ def parse_m3u8(dir_name, index_file):
 
 def save_chunk(name):
     
-    src_dir = os.path.join(HLS_TMP_FOLDER, name)
+    src_dir = os.path.join(TMP_FOLDER, name)
     if not os.path.exists(src_dir):
         logger.warning("no found HLS folder: %s" % src_dir)
         return False
@@ -174,11 +174,22 @@ def _check_func():
         time.sleep(PERIOD_SECONDS * 1.5)
         for s in HLS_DIRS:
             clean_dir(s)
+    return
+
+def _check_screen():
+    logger.info("init old chunk folders")
+    while True:
+        time.sleep(HLS_FRAGMENT_TIME)
+        for s in HLS_DIRS:
+            check_screen(s)
     return  
 
 def main():
-    t = threading.Thread(target=_check_func)
-    t.start()
+    t1 = threading.Thread(target=_check_func)
+    t1.start()
+
+    t2 = threading.Thread(target=_check_screen)
+    t2.start()
 
     while True:
         time.sleep(HLS_FRAGMENT_TIME * 1.5)
