@@ -8,7 +8,7 @@ import logging
 from logging import handlers
 from shutil import copyfile, rmtree
 import threading
-
+import subprocess
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -34,7 +34,10 @@ STORAGE_DIR = os.environ.get("SAVE_STORAGE", "/tmp")
 TMP_FOLDER = os.path.join(os.environ.get("TMP_FOLDER", "/tmp") , "hls")
 HLS_FRAGMENT_TIME = int(os.environ.get("HLS_FRAGMENT", "60"))
 SAVE_MAX_TIME = int(os.environ.get("SAVE_MAX_TIME", "600"))
+NAME_LOCALHOST = os.environ.get("NAME_LOCALHOST", "http://127.0.0.1")
+
 chunk_dir = "chunks"
+screen_dir = "screens"
 PERIOD_SECONDS = 300
 DAY_SECONDS = 3600 * 24
 # ==============================================================
@@ -115,17 +118,16 @@ def save_chunk(name):
 
     dur_chunks = parse_m3u8(dst_dir, dst_index_file)
     new_dur_chunks = parse_m3u8(src_dir, src_index_file)
-    curr_time = time.time() - 0.1
 
     for i in range(len(new_chunks) - 1):
         if new_chunks[i][1] < last_time:
             continue
         chunk = os.path.join(dst_chunk_dir, "%d.ts" % len(old_chunks))
         dur_chunks[chunk] = new_dur_chunks.get(new_chunks[i][0], float(HLS_FRAGMENT_TIME))
-        os.utime(new_chunks[i][0], (curr_time, curr_time))
+        os.utime(new_chunks[i][0], (1330712280, 1330712292))
         old_chunks.append((chunk, time.time()))
         copyfile(new_chunks[i][0],chunk)
-        # logger.warning("add file: %s" % chunk)
+        logger.debug("add file: %s => %s" % (new_chunks[i][0], chunk))
     if not dur_chunks:
         return False
 
@@ -158,18 +160,74 @@ def clean_dir(name):
             continue
         logger.info("check day dir: %s" % d)
         for c, tt in scan_folder(d):
-            if tt > last_time:
+            if tt > last_time or c.endswith(screen_dir):
                 continue
             logger.info("folder %s was removed" % c)
             rmtree(c)
-        if not scan_folder(d):
+        if len(scan_folder(d)) <= 1:
             logger.info("root folder %s was removed" % d)
-
             rmtree(d)
+
     return
 
 def check_screen(name):
-    logger.info("test: %s" % name)
+    logger.info("check screens: %s" % name)
+    root_dir = os.path.join(STORAGE_DIR, name)
+    curr_dir = os.path.join(STORAGE_DIR, name, get_current_date(), get_current_hour())
+    for d, _ in scan_folder(root_dir) or []:
+        sdir = os.path.join(d, screen_dir)
+        if not os.path.exists(sdir):
+            os.makedirs(sdir)
+        loaded_files = [sdir]
+        for s, _ in scan_folder(sdir) or []:
+            b = "_".join(os.path.basename(s).split("_")[:-1])
+            b = os.path.join(d, b)
+            if b not in loaded_files:
+                loaded_files.append(b)
+
+
+        for c, _ in scan_folder(d):
+            if c in loaded_files:
+                # logger.warning("ignore upload folder: %s" % c)
+                continue
+            if c == curr_dir:
+                # logger.warning("ignore current folder: %s" % c)
+                continue
+            dst_dir = os.path.join(os.path.dirname(TMP_FOLDER), screen_dir, name)
+            if os.path.exists(dst_dir):
+                rmtree(dst_dir)
+            os.makedirs(dst_dir)
+
+            url = "%s/storage/%s/%s/index.m3u8" % (NAME_LOCALHOST, name, "/".join(c.split("/")[-2:]))
+            commands = ["""timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.08)"  -s 480x300 -r 1/6 -f image2 %s/%%03d.png""" % (url, dst_dir),
+                        """ffmpeg  -loglevel warning -i '%s' -vframes 1  -s 480x300 -f image2 %s/first.png""" % (url, dst_dir)]
+            screen_files = []
+            logger.info("SCREEN: try to found screens for %s" % c)
+            for cmd in commands:
+                return_code = subprocess.call(cmd, shell=True)
+                if return_code:
+                    logger.warning("SCREEN: cmd error %s => %s" %(cmd, return_code))
+                    continue
+                screen_files = scan_folder(dst_dir) or []
+                if not len(screen_files):
+                   logger.debug("SCREEN: no found by cmd: %s" % cmd)
+                else:
+                   break
+            screen_files = sorted([sc for sc, _ in screen_files])
+            if not screen_files:
+                ff = os.path.join(dst_dir, "empty.txt")
+                with open(ff, "w") as f:
+                    f.write("SCREEN: no screens\n")
+                screen_files.append(ff)
+            if len(screen_files) > 20:
+                screen_files = screen_files[-20:]   
+            for i in range(len(screen_files)):
+                ext = screen_files[i].split(".")[-1]
+                dst_screen_file = os.path.join(os.path.basename(c) + "_%d.%s" % (i + 1, ext))
+                dst_screen_file = os.path.join(sdir, dst_screen_file)
+                copyfile(screen_files[i], dst_screen_file)
+            logger.debug("SCREEN: save screen %s files for %s" % (len(screen_files), c))
+
     return
 
 def _check_func():
@@ -183,9 +241,10 @@ def _check_func():
 def _check_screen():
     logger.info("init old chunk folders")
     while True:
-        time.sleep(HLS_FRAGMENT_TIME)
+        
         for s in HLS_DIRS:
             check_screen(s)
+        time.sleep(HLS_FRAGMENT_TIME * 10)
     return  
 
 def main():

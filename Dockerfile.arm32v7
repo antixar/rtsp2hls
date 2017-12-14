@@ -128,6 +128,8 @@ RUN apk add --no-cache ffmpeg python
 
 
 # SAVE_MAX_TIME is max time of file saving in seconds
+ENV FFMPEG_OPTIONS  "-rtsp_transport tcp"
+ENV NAME_LOCALHOST "http://127.0.0.1"
 ENV SAVE_MAX_TIME  300
 ENV HLS_FRAGMENT 3
 ENV SAVE_STORAGE /data/storage/
