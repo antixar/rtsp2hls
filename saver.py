@@ -35,6 +35,7 @@ TMP_FOLDER = os.path.join(os.environ.get("TMP_FOLDER", "/tmp") , "hls")
 HLS_FRAGMENT_TIME = int(os.environ.get("HLS_FRAGMENT", "60"))
 SAVE_MAX_TIME = int(os.environ.get("SAVE_MAX_TIME", "600"))
 NAME_LOCALHOST = os.environ.get("NAME_LOCALHOST", "http://127.0.0.1")
+MODE_DEBUG = os.environ.get("MODE_DEBUG", "False")
 
 chunk_dir = "chunks"
 screen_dir = "screens"
@@ -235,7 +236,12 @@ def _check_func():
     while True:
         time.sleep(PERIOD_SECONDS * 1.5)
         for s in HLS_DIRS:
-            clean_dir(s)
+            try:
+                clean_dir(s)
+            except Exception as e:
+                logger.error(str(e))
+                if MODE_DEBUG == "True":
+                    raise
     return
 
 def _check_screen():
@@ -243,7 +249,12 @@ def _check_screen():
     while True:
         
         for s in HLS_DIRS:
-            check_screen(s)
+            try:
+                check_screen(s)
+            except Exception as e:
+                logger.error(str(e))
+                if MODE_DEBUG == "True":
+                    raise
         time.sleep(HLS_FRAGMENT_TIME * 10)
     return  
 
@@ -254,10 +265,16 @@ def main():
     t2 = threading.Thread(target=_check_screen)
     t2.start()
 
+    
     while True:
         time.sleep(HLS_FRAGMENT_TIME * 1.5)
         for s in HLS_DIRS:
-            save_chunk(s)
+            try:
+                save_chunk(s)
+            except Exception as e:
+                logger.error(str(e))
+                if MODE_DEBUG == "True":
+                    raise
 
 
 
