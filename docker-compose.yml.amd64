@@ -19,4 +19,18 @@ services:
       - 80:80
     volumes:
       - /mnt/storage/videos:/data/storage/
+  samba:
+    build:
+      context: ./samba/
+      dockerfile: Dockerfile
+    dns: 10.89.10.1
+    restart: always
+    ports:
+      - 137:137/udp
+      - 138:138/udp
+      - 139:139/tcp
+      - 445:445/tcp
+    volumes:
+      - /mnt/storage/videos:/data/
+
  

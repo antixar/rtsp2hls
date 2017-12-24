@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv sh
+
+if [ ! -f "/config/smb.conf" ]; then
+	echo "ERROR: You must pass have a Samba config file named smb.conf in /config"
+	exit 1
+fi
+
+#addgroup -g ${GID} ${GROUP} > /dev/null 2&>1
+#adduser -S -G ${GROUP} -u ${UID} -H -D ${USERNAME}
+#echo "${PASSWORD}" | tee - | smbpasswd -s -c "${CONFIG}" -a ${USERNAME}
+
+nmbd --foreground --log-stdout --configfile="/config/smb.conf" &
+smbd --foreground --log-stdout --configfile="/config/smb.conf"

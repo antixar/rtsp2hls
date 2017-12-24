@@ -1,0 +1,33 @@
+#!/usr/bin/with-contenv sh
+
+# shellcheck source=/opt/createuser.sh
+source "${COMMON_SCRIPTS_LOCATION}"/createuser.sh
+
+createUserNobody () {
+	echo "Creating nobody user"
+	smbpasswd  -c "/config/smb.conf" -an nobody
+}
+
+#	arguments username password
+createSamba () {
+		echo "${5}" | tee - | smbpasswd -s -c "/config/smb.conf" -a "${1}"
+}
+
+if [ ! -f "/config/users.conf" ]; then
+	echo "no users.conf provided, using environment variables"
+
+	createUser "$USERNAME" "$UID" "$GROUP" "$GID" "$PASSWORD"
+
+else
+	echo "users.conf found, proceeding..."
+	grep -v '^#' "/config/users.conf" | while IFS='' read -r line || [[ -n "$line" ]]; do
+		USERNAME=$(echo "$line" | cut -f1)
+		PASSWORD=$(echo "$line" | cut -f2)
+		UID=$(echo "$line" | cut -f3)
+		GID=$(echo "$line" | cut -f4)
+		GROUP=$(echo "$line" | cut -f5)
+
+		createUser "$USERNAME" "$UID" "$GROUP" "$GID" "$PASSWORD" createSamba
+	done
+fi
+createUserNobody
