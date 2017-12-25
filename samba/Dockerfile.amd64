@@ -1,4 +1,4 @@
-FROM ogomez/arm32v7-alpine
+FROM alpine:latest
 
 VOLUME ["/config", "/shared"]
 EXPOSE 137/udp 138/udp 139/tcp 445/tcp
@@ -52,8 +52,7 @@ RUN set -xe \
 COPY create-samba-users.s6 /etc/cont-init.d/00-create-samba-users.sh
 COPY create-tmp-folder.s6 /etc/cont-init.d/01-create-tmp-folder.sh
 COPY run-samba-server.s6 /etc/services.d/samba/run
-COPY ./start.sh /start.sh
 COPY ./config /config
-
+COPY ./start.sh /start.sh
 
 ENTRYPOINT [ "/start.sh" ]
