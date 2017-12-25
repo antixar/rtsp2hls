@@ -21,8 +21,8 @@ services:
       - /mnt/storage/videos:/data/storage/
   samba:
     build:
-      context: ./samba/
-      dockerfile: Dockerfile.arm64
+      context: ./samba/arm64
+      dockerfile: Dockerfile
     dns: 10.89.10.1
     restart: always
     ports:
