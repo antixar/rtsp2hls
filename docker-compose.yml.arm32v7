@@ -20,7 +20,7 @@ services:
 
   samba:
     build:
-      context: ./samba/arm32v7
+      context: ./samba/arm32
       dockerfile: Dockerfile
     dns: 10.89.10.1
     restart: always

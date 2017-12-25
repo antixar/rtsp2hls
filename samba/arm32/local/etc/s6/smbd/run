@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "run smbd"
+
+exec smbd -F -S -s=/conf.d/samba/smb.conf
