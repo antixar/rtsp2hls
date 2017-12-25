@@ -56,4 +56,4 @@ COPY ./start.sh /start.sh
 COPY ./config /config
 
 
-ENTRYPOINT [ "/start.sh" ]
+ENTRYPOINT [ "sh", "/start.sh" ]
