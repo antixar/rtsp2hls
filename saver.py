@@ -200,17 +200,19 @@ def check_screen(name):
             os.makedirs(dst_dir)
 
             url = "%s/storage/%s/%s/index.m3u8" % (NAME_LOCALHOST, name, "/".join(c.split("/")[-2:]))
-            commands = ["""timeout  -s 9 -t 180 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.02)"  -s 480x300  -vsync 0 -f image2 %s/%%03d.png""" % (url, dst_dir),
+            commands = ["""timeout  -s 9 -t 180 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.02)"  -s 320x200  -vsync 0 -f image2 %s/%%03d.png""" % (url, dst_dir),
                     #    """ffmpeg  -loglevel warning -i '%s' -vframes 1  -s 480x300 -f image2 %s/first.png""" % (url, dst_dir),
                         ]
             screen_files = []
             logger.info("SCREEN: try to found screens for %s" % c)
             for cmd in commands:
+                
                 return_code = subprocess.call(cmd, shell=True)
-                if return_code:
+                screen_files = scan_folder(dst_dir) or []
+                if return_code and not screen_files:
                     logger.warning("SCREEN: cmd error %s => %s" %(cmd, return_code))
                     continue
-                screen_files = scan_folder(dst_dir) or []
+                
                 if not len(screen_files):
                    logger.debug("SCREEN: no found by cmd: %s" % cmd)
                 else:
@@ -222,7 +224,9 @@ def check_screen(name):
                     f.write("empty\n")
                 screen_files.append(ff)
             if len(screen_files) > 20:
-                screen_files = screen_files[-20:]   
+                cmd ="""ffmpeg  -loglevel warning  -pattern_type glob -i %s/*.png -filter_complex tile=5x4  -f image2 %s/output.png""" % ( dst_dir, dst_dir)
+                subprocess.call(cmd, shell=True)
+                screen_files = ["%s/output.png"]   
             for i in range(len(screen_files)):
                 ext = screen_files[i].split(".")[-1]
                 dst_screen_file = os.path.join(os.path.basename(c) + "_%d.%s" % (i + 1, ext))
