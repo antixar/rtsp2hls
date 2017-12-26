@@ -1,4 +1,5 @@
-FROM alpine:latest
+# FROM alpine:latest
+FROM forumi0721/alpine-armhf-base:latest
 
 VOLUME ["/config", "/shared"]
 EXPOSE 137/udp 138/udp 139/tcp 445/tcp
@@ -14,9 +15,9 @@ ENV COMMON_SCRIPTS_LOCATION	/opt
 
 #	no longer uses add command to follow dockerfile's good practices
 #	Download s6-overlay's files
-#	ADD https://keybase.io/justcontainers/key.asc /tmp/key.asc
-#	ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6_VERSION/$S6_ARCH.tar.gz /tmp/s6.tar.gz
-#	ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6_VERSION/$S6_ARCH.tar.gz.sig /tmp/s6.sig
+ADD https://keybase.io/justcontainers/key.asc /tmp/key.asc
+ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6_VERSION/$S6_ARCH.tar.gz /tmp/s6.tar.gz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6_VERSION/$S6_ARCH.tar.gz.sig /tmp/s6.sig
 
 #	Install packages
 RUN set -xe \

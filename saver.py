@@ -200,8 +200,9 @@ def check_screen(name):
             os.makedirs(dst_dir)
 
             url = "%s/storage/%s/%s/index.m3u8" % (NAME_LOCALHOST, name, "/".join(c.split("/")[-2:]))
-            commands = ["""timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.08)"  -s 480x300 -r 1/6 -f image2 %s/%%03d.png""" % (url, dst_dir),
-                        """ffmpeg  -loglevel warning -i '%s' -vframes 1  -s 480x300 -f image2 %s/first.png""" % (url, dst_dir)]
+            commands = ["""timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.02)"  -s 480x300 -r 1/10 -f image2 %s/%%03d.png""" % (url, dst_dir),
+                    #    """ffmpeg  -loglevel warning -i '%s' -vframes 1  -s 480x300 -f image2 %s/first.png""" % (url, dst_dir),
+                        ]
             screen_files = []
             logger.info("SCREEN: try to found screens for %s" % c)
             for cmd in commands:
@@ -218,7 +219,7 @@ def check_screen(name):
             if not screen_files:
                 ff = os.path.join(dst_dir, "empty.txt")
                 with open(ff, "w") as f:
-                    f.write("SCREEN: no screens\n")
+                    f.write("empty\n")
                 screen_files.append(ff)
             if len(screen_files) > 20:
                 screen_files = screen_files[-20:]   
