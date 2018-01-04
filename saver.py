@@ -22,14 +22,7 @@ maxBytes=(1048576*5), backupCount=7)
 fh.setFormatter(form2)
 logger.addHandler(fh)
 
-
 # =============================================================
-if len(sys.argv) <= 1:
-    logger.warning("no set any stream data!!!")
-    sys.exit(1)
-HLS_DIRS = sys.argv[1:]
-logger.info("start to check chunks for %s" % HLS_DIRS)
-
 STORAGE_DIR = os.environ.get("SAVE_STORAGE", "/tmp")
 TMP_FOLDER = os.path.join(os.environ.get("TMP_FOLDER", "/tmp") , "hls")
 HLS_FRAGMENT_TIME = int(os.environ.get("HLS_FRAGMENT", "60"))
@@ -41,7 +34,23 @@ chunk_dir = "chunks"
 screen_dir = "screens"
 PERIOD_SECONDS = 300
 DAY_SECONDS = 3600 * 24
+DEFAULT_SENS = 0.08
 # ==============================================================
+
+if len(sys.argv) <= 1:
+    logger.warning("no set any stream data!!!")
+    sys.exit(1)
+HLS_DIRS = sys.argv[1:]
+logger.info("start to check chunks for %s" % HLS_DIRS)
+
+SENS_SCREENS = {}
+for k, v in os.environ.items():
+    if not k.startswith("RTSP_SENS_"):
+        continue
+    SENS_SCREENS[k.replace("RTSP_SENS_", "")] = float(v)
+
+SENS_SCREENS = {n:SENS_SCREENS.get(n, DEFAULT_SENS) for n in HLS_DIRS}
+# ================================================================
 
 def get_current_date(delta=0):
     return datetime.fromtimestamp(time.time() - delta).strftime('%Y-%m-%d')
@@ -200,7 +209,7 @@ def check_screen(name):
             os.makedirs(dst_dir)
 
             url = "%s/storage/%s/%s/index.m3u8" % (NAME_LOCALHOST, name, "/".join(c.split("/")[-2:]))
-            commands = ["""timeout  -s 9 -t 180 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.02)"  -s 320x200  -vsync 0 -f image2 %s/%%03d.png""" % (url, dst_dir),
+            commands = ["""timeout  -s 9 -t 180 ffmpeg  -loglevel warning -i '{url}' -vf "select=gt(scene\,{sens})"  -s 320x200  -vsync 0 -f image2 {dpath}/%%03d.png""".format(url=url,sens=SENS_SCREENS[name], dpath=dst_dir),
                     #    """ffmpeg  -loglevel warning -i '%s' -vframes 1  -s 480x300 -f image2 %s/first.png""" % (url, dst_dir),
                         ]
             screen_files = []
@@ -224,9 +233,9 @@ def check_screen(name):
                     f.write("empty\n")
                 screen_files.append(ff)
             if len(screen_files) > 20:
-                cmd ="""ffmpeg  -loglevel warning  -pattern_type glob -i %s/*.png -filter_complex tile=5x4  -f image2 %s/output.png""" % ( dst_dir, dst_dir)
+                cmd ="""ffmpeg -loglevel warning  -pattern_type glob -i %s/*.png -filter_complex tile=5x4  -f image2 %s/output.png""" % ( dst_dir, dst_dir)
                 subprocess.call(cmd, shell=True)
-                screen_files = ["%s/output.png"]   
+                screen_files = ["%s/output.png" % dst_dir]   
             for i in range(len(screen_files)):
                 ext = screen_files[i].split(".")[-1]
                 dst_screen_file = os.path.join(os.path.basename(c) + "_%d.%s" % (i + 1, ext))

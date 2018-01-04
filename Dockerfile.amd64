@@ -136,6 +136,8 @@ ENV SAVE_STORAGE /data/storage/
 ENV TMP_FOLDER /data/tmp/
 ENV LOG_FILENAME /data/logs/saver.log
 
+ENV RTSP_STREAM_test "http://banana.castle.intra/hls/stock/index.m3u8"
+ENV RTSP_SENS_test 0.02
 
 
 WORKDIR /

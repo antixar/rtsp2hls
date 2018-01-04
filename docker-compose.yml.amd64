@@ -13,6 +13,7 @@ services:
      # RTSP_STREAM_stream1: "rtsp://127.0.0.1/stream1"
      # RTSP_STREAM_stream2: "rtsp://127.0.0.1/stream2"
       RTSP_STREAM_stock: "rtsp://stock.camera.castle.intra:554/user=admin&password=&channel=1&stream=0"
+
     tmpfs:
       - /data/tmp/
     ports:
