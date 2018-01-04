@@ -20,8 +20,8 @@ for t in ${TEMP}; do
     if [ "${NAME}" == "" -o "${URL}" == "" ]; then
         continue
     fi
-    SCREEN_FOLDER=${TMP_FOLDER}/screen/${NAME}
-    mkdir -p ${SCREEN_FOLDER}
+    SCREEN_FOLDER=${TMP_FOLDER}/screens/${NAME}
+    mkdir -p ${SCREEN_FOLDER} ${TMP_FOLDER}/hls/${NAME}
 
 
     echo "${NAME} => ${URL}"
