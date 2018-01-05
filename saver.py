@@ -211,7 +211,7 @@ def check_screen(name):
             url = "%s/storage/%s/%s/index.m3u8" % (NAME_LOCALHOST, name, "/".join(c.split("/")[-2:]))
             # """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.08)"  -s 480x300 -r 1/6 -f image2 %s/%%03d.png""" % (url, dst_dir),
                   
-            commands = ["""timeout  -s 9 -t 180 ffmpeg  -loglevel warning -i '{url}' -vf "select=gt(scene\,{sens})" -s 480x300 -r 1/6 -f image2 {dpath}/%%03d.png""".format(url=url,sens=SENS_SCREENS[name], dpath=dst_dir),
+            commands = ["""timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '{url}' -vf "select=gt(scene\,{sens})" -s 480x300 -r 1/6 -f image2 {dpath}/%%03d.png""".format(url=url,sens=SENS_SCREENS[name], dpath=dst_dir),
                     #    """ffmpeg  -loglevel warning -i '%s' -vframes 1  -s 480x300 -f image2 %s/first.png""" % (url, dst_dir),
                         ]
             screen_files = []
