@@ -219,6 +219,7 @@ def check_screen(name):
                 logger.warning("SCREEN: cmd error %s => %s" %(cmd, return_code))
                 continue
             cmd = """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '{dpath}/temp_%03d.png' -an -vf "select=gt(scene\,{sens})" -f image2 {dpath}/%03d.png""".format(url=url,sens=SENS_SCREENS[name], dpath=dst_dir)
+            logger.warning(screen_files)
             return_code = subprocess.call(cmd, shell=True)
             for s in sorted([sc for sc, _ in screen_files]):
                 os.remove(s)
@@ -229,6 +230,7 @@ def check_screen(name):
                 ff = os.path.join(dst_dir, "empty.txt")
                 with open(ff, "w") as f:
                     f.write("empty\n")
+                logger.info("gen gup for %s" % c)
                 screen_files.append(ff)
             else:
                 screen_files = sorted([sc for sc, _ in screen_files])
