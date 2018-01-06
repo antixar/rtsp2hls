@@ -210,31 +210,31 @@ def check_screen(name):
 
             url = "%s/storage/%s/%s/index.m3u8" % (NAME_LOCALHOST, name, "/".join(c.split("/")[-2:]))
             # """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.08)"  -s 480x300 -r 1/6 -f image2 %s/%%03d.png""" % (url, dst_dir),
-                  
-            commands = ["""timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '{url}' -vf "select=gt(scene\,{sens})" -s 480x300 -r 1/6 -f image2 {dpath}/%%03d.png""".format(url=url,sens=SENS_SCREENS[name], dpath=dst_dir),
-                    #    """ffmpeg  -loglevel warning -i '%s' -vframes 1  -s 480x300 -f image2 %s/first.png""" % (url, dst_dir),
-                        ]
-            screen_files = []
             logger.info("SCREEN: try to found screens for %s" % c)
-            for cmd in commands:
-                
-                return_code = subprocess.call(cmd, shell=True)
-                screen_files = scan_folder(dst_dir) or []
-                if return_code and not screen_files:
-                    logger.warning("SCREEN: cmd error %s => %s" %(cmd, return_code))
-                    continue
-                
-                if not len(screen_files):
-                   logger.debug("SCREEN: no found by cmd: %s" % cmd)
-                else:
-                   break
-            screen_files = sorted([sc for sc, _ in screen_files])
+            cmd = """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '{url}' -an -vf fps=1/3 -f image2 {dpath}/temp_%03d.png""".format(url=url, dpath=dst_dir)
+            return_code = subprocess.call(cmd, shell=True)
+            screen_files = scan_folder(dst_dir) or []
+
+            if return_code and not screen_files:
+                logger.warning("SCREEN: cmd error %s => %s" %(cmd, return_code))
+                continue
+            cmd = """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '{dpath}/temp_%03d.png' -an -vf "select=gt(scene\,{sens})" -f image2 {dpath}/%03d.png""".format(url=url,sens=SENS_SCREENS[name], dpath=dst_dir)
+            return_code = subprocess.call(cmd, shell=True)
+            for s in sorted([sc for sc, _ in screen_files]):
+                os.remove(s)
+
+            screen_files = scan_folder(dst_dir) or []
+
             if not screen_files:
                 ff = os.path.join(dst_dir, "empty.txt")
                 with open(ff, "w") as f:
                     f.write("empty\n")
                 screen_files.append(ff)
+            else:
+                screen_files = sorted([sc for sc, _ in screen_files])
+
             if len(screen_files) > 20:
+
                 cmd ="""ffmpeg -loglevel warning  -pattern_type glob -i %s/*.png -filter_complex tile=5x4  -f image2 %s/output.png""" % ( dst_dir, dst_dir)
                 subprocess.call(cmd, shell=True)
                 screen_files = ["%s/output.png" % dst_dir]   
