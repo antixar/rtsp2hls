@@ -71,7 +71,7 @@ def timezone2shift(tz=CURRENT_TIMEZONE):
     return t
 
 def get_current_time():
-    return time.time() - timezone2shift()
+    return time.time() + timezone2shift()
 
 
 
@@ -236,17 +236,23 @@ def check_screen(name):
 
             url = "%s/storage/%s/%s/index.m3u8" % (NAME_LOCALHOST, name, "/".join(c.split("/")[-2:]))
             # """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.08)"  -s 480x300 -r 1/6 -f image2 %s/%%03d.png""" % (url, dst_dir),
-            logger.info("SCREEN: try to found screens for %s" % c)
-            cmd = """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '{url}' -an -vf fps=1/{min_delay} -f image2 {dpath}/temp_%03d.png""".format(min_delay=SCREEN_MIN_DELAY, url=url, dpath=dst_dir)
+            logger.info("SCREEN: try to found screens for %s, created time: %s" % (c, create_time_dir))
+            # cmd = """timeout  -s 9 -t 90 ffmpeg  -loglevel warning -i '{url}' -an -vf fps=1/{min_delay}  -s 480x300 -f image2 {dpath}/temp_%03d.png""".format(min_delay=SCREEN_MIN_DELAY, url=url, dpath=dst_dir)
+            cmd = """timeout  -s 9 -t 70 ffmpeg  -loglevel warning -i '{url}' -an   -q:v 2 -vf select="eq(pict_type\,PICT_TYPE_I)" -vsync 0 -f image2 {dpath}/temp_%03d.png""".format(url=url, dpath=dst_dir)
+            
+            # 
             return_code = subprocess.call(cmd, shell=True)
             screen_files = scan_folder(dst_dir) or []
 
             if return_code and not screen_files:
                 logger.warning("SCREEN: cmd error %s => %s" %(cmd, return_code))
-                continue
-            cmd = """timeout  -s 9 -t 90 ffmpeg  -loglevel warning -i '{dpath}/temp_%03d.png' -an -vf "select=gt(scene\,{sens})" -f image2 {dpath}/%03d.png""".format(url=url,sens=SENS_SCREENS[name], dpath=dst_dir)
-            logger.warning(cmd)
-            return_code = subprocess.call(cmd, shell=True)
+                # continue
+            else:
+                logger.info("SCREEN: found %s i-frames" % len(screen_files))
+                cmd = """timeout  -s 9 -t 90 ffmpeg  -loglevel warning -i '{dpath}/temp_%03d.png' -an -vf "select=gt(scene\,{sens})" -f image2 {dpath}/%03d.png""".format(url=url,sens=SENS_SCREENS[name], dpath=dst_dir)
+                logger.warning(cmd)
+                return_code = subprocess.call(cmd, shell=True)
+            
             for s in sorted([sc for sc, _ in screen_files]):
                 os.remove(s)
             if return_code:
