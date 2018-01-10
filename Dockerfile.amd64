@@ -123,8 +123,8 @@ RUN CONFIG="\
 
 
 
-RUN apk add --no-cache ffmpeg python
-
+RUN apk add --no-cache ffmpeg python py-pip
+RUN pip install python-dateutil pytz
 
 # SAVE_MAX_TIME is max time of file saving in seconds
 ENV MODE_DEBUG False
@@ -132,6 +132,9 @@ ENV FFMPEG_OPTIONS  "-rtsp_transport tcp"
 ENV NAME_LOCALHOST "http://127.0.0.1"
 ENV SAVE_MAX_TIME  300
 ENV HLS_FRAGMENT 3
+ENV SCREEN_MIN_DELAY  5
+ENV MIN_SCREEN_START_TIME 1515614777 # Wed, 10 Jan 2018 20:06:17
+ENV CURRENT_TIMEZONE  "Europe/London"
 ENV SAVE_STORAGE /data/storage/
 ENV TMP_FOLDER /data/tmp/
 ENV LOG_FILENAME /data/logs/saver.log

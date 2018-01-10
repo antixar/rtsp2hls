@@ -9,6 +9,10 @@ from logging import handlers
 from shutil import copyfile, rmtree
 import threading
 import subprocess
+from dateutil.tz import tzlocal
+from pytz import timezone
+import calendar
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -29,7 +33,9 @@ HLS_FRAGMENT_TIME = int(os.environ.get("HLS_FRAGMENT", "60"))
 SAVE_MAX_TIME = int(os.environ.get("SAVE_MAX_TIME", "600"))
 NAME_LOCALHOST = os.environ.get("NAME_LOCALHOST", "http://127.0.0.1")
 MODE_DEBUG = os.environ.get("MODE_DEBUG", "False")
-
+SCREEN_MIN_DELAY = int(os.environ.get("SCREEN_MIN_DELAY", "5"))
+MIN_SCREEN_START_TIME = int(os.environ.get("MIN_SCREEN_START_TIM", "0"))
+CURRENT_TIMEZONE = os.environ.get("CURRENT_TIMEZONE", "Europe/London")
 chunk_dir = "chunks"
 screen_dir = "screens"
 PERIOD_SECONDS = 300
@@ -52,11 +58,28 @@ for k, v in os.environ.items():
 SENS_SCREENS = {n:SENS_SCREENS.get(n, DEFAULT_SENS) for n in HLS_DIRS}
 # ================================================================
 
+def timezone2shift(tz=CURRENT_TIMEZONE):
+    if not tz:
+        return None
+    try:
+        t = datetime.now(timezone(tz)).timetuple()
+        t = calendar.timegm(t)
+        t -= int(time.time())
+    except Exception as e:
+        print("bad format time zone: %s" % str(e))
+        return None
+    return t
+
+def get_current_time():
+    return time.time() - timezone2shift()
+
+
+
 def get_current_date(delta=0):
-    return datetime.fromtimestamp(time.time() - delta).strftime('%Y-%m-%d')
+    return datetime.fromtimestamp(get_current_time() - delta).strftime('%Y-%m-%d')
 
 def get_current_hour(delta=0):
-    return datetime.fromtimestamp(int((time.time() - delta)/ PERIOD_SECONDS) * PERIOD_SECONDS).strftime('%Y-%m-%d_%H-%M')
+    return datetime.fromtimestamp(int((get_current_time() - delta)/ PERIOD_SECONDS) * PERIOD_SECONDS).strftime('%Y-%m-%d_%H-%M')
 
 def scan_folder(dirname):
     res = []
@@ -196,12 +219,15 @@ def check_screen(name):
                 loaded_files.append(b)
 
 
-        for c, _ in scan_folder(d):
+        for c, create_time_dir in scan_folder(d):
             if c in loaded_files:
                 # logger.warning("ignore upload folder: %s" % c)
                 continue
-            if c == curr_dir:
+            elif c == curr_dir:
                 # logger.warning("ignore current folder: %s" % c)
+                continue
+            elif create_time_dir < MIN_SCREEN_START_TIME:
+                # logger.warning("FFFFFFFFFFF")
                 continue
             dst_dir = os.path.join(os.path.dirname(TMP_FOLDER), screen_dir, name)
             if os.path.exists(dst_dir):
@@ -211,7 +237,7 @@ def check_screen(name):
             url = "%s/storage/%s/%s/index.m3u8" % (NAME_LOCALHOST, name, "/".join(c.split("/")[-2:]))
             # """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '%s' -vf "select=gt(scene\,0.08)"  -s 480x300 -r 1/6 -f image2 %s/%%03d.png""" % (url, dst_dir),
             logger.info("SCREEN: try to found screens for %s" % c)
-            cmd = """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '{url}' -an -vf fps=1/5 -f image2 {dpath}/temp_%03d.png""".format(url=url, dpath=dst_dir)
+            cmd = """timeout  -s 9 -t 60 ffmpeg  -loglevel warning -i '{url}' -an -vf fps=1/{min_delay} -f image2 {dpath}/temp_%03d.png""".format(min_delay=SCREEN_MIN_DELAY, url=url, dpath=dst_dir)
             return_code = subprocess.call(cmd, shell=True)
             screen_files = scan_folder(dst_dir) or []
 
