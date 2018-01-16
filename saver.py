@@ -270,9 +270,10 @@ def check_screen(name):
 
             if len(screen_files) > 20:
 
-                cmd ="""ffmpeg -loglevel warning  -pattern_type glob -i %s/*.png -filter_complex tile=5x4  -f image2 %s/output.png""" % ( dst_dir, dst_dir)
-                subprocess.call(cmd, shell=True)
-                screen_files = ["%s/output.png" % dst_dir]   
+                # cmd ="""ffmpeg -loglevel warning  -pattern_type glob -i %s/*.png -filter_complex tile=5x4  -f image2 %s/output.png""" % ( dst_dir, dst_dir)
+                # subprocess.call(cmd, shell=True)
+                # screen_files = ["%s/output.png" % dst_dir]
+                screen_files = screen_files[:20]   
             for i in range(len(screen_files)):
                 ext = screen_files[i].split(".")[-1]
                 dst_screen_file = os.path.join(os.path.basename(c) + "_%d.%s" % (i + 1, ext))
